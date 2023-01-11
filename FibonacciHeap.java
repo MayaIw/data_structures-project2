@@ -9,7 +9,7 @@ public class FibonacciHeap
     public int size; // number of elements in the heap
     public HeapNode min;
     public HeapNode first;
-    private numofLinks = 0; //should be increased for every link operation
+    private static int numofLinks = 0; //should be increased for every link operation
 
    /**
     * public boolean isEmpty()
@@ -93,7 +93,7 @@ public class FibonacciHeap
     public int[] countersRep()
     {
         if(this.isEmpty()){
-            return new int[];
+            return new int[0];
         }
         int n = this.size();
         int maxOrder = Math.floor(Math.log(n+1));
@@ -164,7 +164,7 @@ public class FibonacciHeap
     */
     public static int totalLinks()
     {
-    	return this.numofLinks; // should be replaced by student code
+    	return numofLinks; // should be replaced by student code
     }
 
    /**
@@ -273,7 +273,7 @@ public class FibonacciHeap
             return this.mark;
         }
 
-        public void setParent(parent){
+        public void setParent(HeapNode parent){
             this.parent = parent;
         }
 
