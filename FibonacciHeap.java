@@ -14,16 +14,6 @@ public class FibonacciHeap
     private int numOfTrees = 0;
     private int numOfMarked = 0;
 
-//    private int maximalRank = 0; // the maximal rank of a tree in the heap
-
-    /**
-     * public FibonnaciHeap()
-     *
-     * empty constructor
-     */
-    public FibonacciHeap() {};
-
-
    /**
     * public boolean isEmpty()
     *
@@ -87,7 +77,13 @@ public class FibonacciHeap
         numOfCuts += min.getRank(); //todo: check in forum if this counts
         size--;
 
-        consolidate();
+        if (numOfTrees == 0) {
+            first = null;
+            min = null;
+            numOfMarked = 0;
+        } else {
+            consolidate();
+        }
     }
 
     /**
@@ -95,6 +91,8 @@ public class FibonacciHeap
      *
      * Go over all trees and preform successive linking.
      * Update numOfTrees, min, numOfMarked (unmark roots), numOfLinks, nullify parents of roots.
+     *
+     * Assume heap is not empty.
      */
     private void consolidate() {
         // We create an array of buckets which will containg all possible degrees
