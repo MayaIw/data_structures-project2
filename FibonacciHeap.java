@@ -6,10 +6,12 @@ import java.lang.Math;
  */
 public class FibonacciHeap
 {
-    public int size; // number of elements in the heap
+    public int size; // Number of elements in the heap
     public HeapNode min;
+    private int markedNodes = 0; //Should be increased for every new marked node
+    private int numofTrees = 0;
     public HeapNode first;
-    private static int numofLinks = 0; //should be increased for every link operation
+    private static int numofLinks = 0; //Should be increased for every link operation
 
    /**
     * public boolean isEmpty()
@@ -96,7 +98,7 @@ public class FibonacciHeap
             return new int[0];
         }
         int n = this.size();
-        int maxOrder = Math.floor(Math.log(n+1));
+        int maxOrder = (int) Math.floor(Math.log(n+1));
     	int[] counters = new int[maxOrder];
         HeapNode current = this.first;
         counters[current.rank] += 1;
@@ -137,7 +139,7 @@ public class FibonacciHeap
     */
     public int nonMarked()
     {
-        return -232; // should be replaced by student code
+        return size-markedNodes;
     }
 
    /**
@@ -191,9 +193,21 @@ public class FibonacciHeap
     {
         int[] minValues = new int[k];
         /**HeapNode curr = H.min;
-        helperHeap = new FibonacciHeap();
+        FibonacciHeap helperHeap = new FibonacciHeap();
         for (int i=0 ; i<k; i++){
-            helperHeap.insert(curr);
+            HeapNode cloneCurr = helperHeap.insert(curr.key);
+            cloneCurr.setPointer(curr);
+            HeapNode child = curr.getChild(); //need to delete min, and insert the children of minimal node
+            HeapNode cloneChild = helperHeap.insert(child.key);
+            cloneChild.setPointer(child);
+            while(child.next!=curr.getChild()){
+                child = child.next();
+                HeapNode cloneKid = helperHeap.insert(child.key);
+                cloneKid.setPointer(child);
+            }
+            HeapNode minimum = helperHeap.findMin().getPointer();
+            helperHeap.deleteMin();
+            curr = minimum;
         }*/
         return minValues; // should be replaced by student code
     }
@@ -214,6 +228,7 @@ public class FibonacciHeap
         public HeapNode next;
         public HeapNode prev;
         public HeapNode parent;
+        public HeapNode pointer;
 
     	public HeapNode(int key) {
     		this.key = key;
@@ -223,6 +238,7 @@ public class FibonacciHeap
             this.parent = null;
             this.mark = false;
             this.rank = 0;
+            this.pointer = null;
     	}
 
     	public int getKey() {
@@ -279,6 +295,14 @@ public class FibonacciHeap
 
        public HeapNode getParent() {
            return this.parent;
+       }
+
+       public void setPointer(HeapNode pointer){
+            this.pointer = pointer;
+       }
+
+       public HeapNode getPointer(){
+            return this.pointer;
        }
    }
 }
