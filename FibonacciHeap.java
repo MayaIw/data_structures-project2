@@ -6,14 +6,20 @@ import java.lang.Math;
  */
 public class FibonacciHeap
 {
-    public int size; // number of elements in the heap
+    public int size; // Number of elements in the heap
     public HeapNode min;
+    private int markedNodes = 0; //Should be increased for every new marked node
+    private int numofTrees = 0;
     public HeapNode first;
+    private static int numofLinks = 0; //Should be increased for every link operation
     private static int numOfLinks = 0; //should be increased for every link operation
     private static int numOfCuts = 0; //should be increased for every cut operation
     private int numOfTrees = 0;
     private int numOfMarked = 0;
 
+    public HeapNode getFirst(){
+        return this.first;
+    }
    /**
     * public boolean isEmpty()
     *
@@ -214,11 +220,11 @@ public class FibonacciHeap
         int n = this.size();
         int maxOrder = (int)Math.floor(Math.log(n+1)); //todo: need to find the real maximum
     	int[] counters = new int[maxOrder];
-        HeapNode current = this.first;
-        counters[current.rank] += 1;
-        while(current.next != this.first){
-            current = current.next();
-            counters[current.rank] += 1;
+        HeapNode current = this.getFirst();
+        counters[current.getRank()] += 1;
+        while(current.getNext() != this.getFirst()){
+            current = current.getNext();
+            counters[current.getRank()] += 1;
         }
         return counters;
     }
@@ -295,7 +301,7 @@ public class FibonacciHeap
     */
     public int nonMarked()
     {
-        return -232; // should be replaced by student code
+        return this.size-this.markedNodes;
     }
 
    /**
@@ -348,12 +354,25 @@ public class FibonacciHeap
     public static int[] kMin(FibonacciHeap H, int k)
     {
         int[] minValues = new int[k];
-        /**HeapNode curr = H.min;
-        helperHeap = new FibonacciHeap();
+        HeapNode curr = H.findMin();
+        FibonacciHeap helperHeap = new FibonacciHeap();
+        HeapNode cloneCurr = helperHeap.insert(curr.getKey());
+        cloneCurr.setPointer(curr);
         for (int i=0 ; i<k; i++){
-            helperHeap.insert(curr);
-        }*/
-        return minValues; // should be replaced by student code
+            HeapNode child = curr.getChild();
+            HeapNode cloneChild = helperHeap.insert(child.getKey());
+            cloneChild.setPointer(child);
+            while(child.getNext()!=curr.getChild()){
+                child = child.getNext();
+                cloneChild = helperHeap.insert(child.getKey());
+                cloneChild.setPointer(child);
+            }
+            HeapNode minimum = helperHeap.findMin().getPointer();
+            minValues[i] = minimum.getKey();
+            helperHeap.deleteMin();
+            curr = minimum;
+        }
+        return minValues;
     }
 
    /**
@@ -372,6 +391,7 @@ public class FibonacciHeap
         public HeapNode next;
         public HeapNode prev;
         public HeapNode parent;
+        public HeapNode pointer;
 
     	public HeapNode(int key) {
     		this.key = key;
@@ -381,6 +401,7 @@ public class FibonacciHeap
             this.parent = null;
             this.mark = false;
             this.rank = 0;
+            this.pointer = null;
     	}
 
     	public int getKey() {
@@ -411,7 +432,7 @@ public class FibonacciHeap
             this.next = next;
         }
 
-        public HeapNode next(){
+        public HeapNode getNext(){
             return this.next;
         }
 
@@ -419,7 +440,7 @@ public class FibonacciHeap
             this.prev = prev;
         }
 
-        public HeapNode prev(){
+        public HeapNode getPrev(){
             return this.prev;
         }
 
@@ -431,7 +452,7 @@ public class FibonacciHeap
             this.mark = false;
         }
 
-        public boolean isMarked(){
+        public boolean getMarked(){
             return this.mark;
         }
 
@@ -441,6 +462,14 @@ public class FibonacciHeap
 
        public HeapNode getParent() {
            return this.parent;
+       }
+
+       public void setPointer(HeapNode pointer){
+            this.pointer = pointer;
+       }
+
+       public HeapNode getPointer(){
+            return this.pointer;
        }
 
        /** public static HeapNode link(HeapNode root1, HeapNode root2)
