@@ -8,18 +8,20 @@ public class FibonacciHeap
 {
     public int size; // Number of elements in the heap
     public HeapNode min;
-    private int markedNodes = 0; //Should be increased for every new marked node
-    private int numofTrees = 0;
     public HeapNode first;
-    private static int numofLinks = 0; //Should be increased for every link operation
     private static int numOfLinks = 0; //should be increased for every link operation
-    private static int numOfCuts = 0; //should be increased for every cut operation
+    private static int numOfCuts = 0; //Should be increased for every cut operation
     private int numOfTrees = 0;
-    private int numOfMarked = 0;
+    private int numOfMarked = 0; //Should be increased for every new marked node
 
     public HeapNode getFirst(){
         return this.first;
     }
+
+    public HeapNode getLast(){
+        return this.first.getPrev();
+    }
+
    /**
     * public boolean isEmpty()
     *
@@ -48,11 +50,14 @@ public class FibonacciHeap
             node.setNext(node);
             node.setPrev(node);
         } else {
-            node.setPrev(first.prev());
-            node.setNext(first.next());
-            first.prev().setNext(node);
+            node.setPrev(getLast());
+            getLast().setNext(node);
+            node.setNext(first);
             first.setPrev(node);
-            if (node.getKey() < min.getKey()) {min = node;}
+            first = node;
+            if (node.getKey() < min.getKey()) {
+                min = node;
+            }
         }
         numOfTrees++;
         size++;
@@ -67,20 +72,22 @@ public class FibonacciHeap
     */
     public void deleteMin()
     {
-        if (first.getKey() == min.getKey()) { // if we delete the first node we need to update first to point somewhere
-            first = min.getChild();
+        if (min.getRank() == 0) {  // if min has no children, connect its prev to its next
+            // if min is the only node, we will fix that after detecting that numOfTrees became 0
+            min.getPrev().setNext(min.getNext());
+            min.getNext().setPrev(min.getPrev());
+        } else {  // otherwise, put its children between its prev and ites next
+            min.getChild().getPrev().setNext(min.getNext());
+            min.getNext().setPrev(min.getChild().getPrev());
+            min.getChild().setPrev(min.getPrev());
+            min.getPrev().setNext(min.getChild());
         }
-        if (numOfTrees == 1) { // only one tree
-            first = min.getChild();
-        } else {
-            min.getChild().prev().setNext(min.next());
-            min.next().setPrev(min.getChild().prev());
-            min.getChild().setPrev(min.prev());
-            min.prev().setNext(min.getChild());
+
+        if (first.getKey() == min.getKey()) { // if we delete the first node we need to update first to point somewhere
+            first = min.getPrev().getNext();  // if min had no children this will be min.next, otherwise it's the first child
         }
 
         numOfTrees += min.getRank() - 1;
-        numOfCuts += min.getRank(); //todo: check in forum if this counts
         size--;
 
         if (numOfTrees == 0) {
@@ -103,17 +110,19 @@ public class FibonacciHeap
     private void consolidate() {
         // We create an array of buckets which will containg all possible degrees
         // todo: if ArrayList is allowed, switch to dynamic array
-        HeapNode[] buckets = new HeapNode[(int)(1.5 * Math.log(size + 1) + 1)];
+        HeapNode[] buckets = new HeapNode[(int) (2.5 * Math.log(size + 1) + 1)];
 
         // successive linking:
         // for every tree, try to put it in the right bucket, if there's a tree there, link and propogate forward
         // also fix number of trees, minimum, and root markings in this process
         HeapNode curr = first;
+        HeapNode nextNode;
         int totalNumofTrees = numOfTrees;
         int newMin = Integer.MAX_VALUE;
 
-        for (int i = 0; i < totalNumofTrees; i ++) {
-            if (curr.isMarked()) { // we were asked to unmark all the roots including those created before consolidate
+        for (int i = 0; i < totalNumofTrees; i++) {
+            nextNode = curr.getNext(); // we keep it now because we change curr in the loop
+            if (curr.getMarked()) { // we were asked to unmark all the roots including those created before consolidate
                 curr.unmarkNode();
                 numOfMarked--;
             }
@@ -121,6 +130,7 @@ public class FibonacciHeap
             // linking loop
             while (buckets[curr.getRank()] != null) {
                 curr = HeapNode.link(curr, buckets[curr.getRank()]);
+                buckets[curr.getRank() - 1] = null;
                 numOfTrees--; // the actual num of trees decreased after linking
             }
             buckets[curr.getRank()] = curr;
@@ -128,7 +138,7 @@ public class FibonacciHeap
                 min = curr;
                 newMin = curr.getKey();
             }
-            curr = curr.next();
+            curr = nextNode;
         }
 
         // Redefine the "list of trees".
@@ -162,7 +172,7 @@ public class FibonacciHeap
     */
     public HeapNode findMin()
     {
-    	if(this.isEmpty()){
+        if (this.isEmpty()) {
             return null;
         }
         return this.min;
@@ -176,18 +186,26 @@ public class FibonacciHeap
     */
     public void meld (FibonacciHeap heap2)
     {
-    	  HeapNode last1 = first.prev();
-          HeapNode last2 = heap2.first.prev();
-          last1.setNext(heap2.first);
-          heap2.first.setPrev(last1);
-          last2.setNext(first);
-          first.setPrev(last2);
-
-          if (heap2.min.getKey() < min.getKey()) {
-              min = heap2.min;
-          }
-          size += heap2.size();
-          numOfTrees += heap2.numOfTrees;
+        if (heap2.size() == 0) {
+            return;
+        }
+        if (size == 0) {
+            first = heap2.first;
+            min = heap2.min;
+        } else {
+            HeapNode last1 = getLast();
+            HeapNode last2 = heap2.getLast();
+            last1.setNext(heap2.first);
+            heap2.first.setPrev(last1);
+            last2.setNext(first);
+            first.setPrev(last2);
+        }
+        if (heap2.min.getKey() < min.getKey()) {
+            min = heap2.min;
+        }
+        size += heap2.size();
+        numOfTrees += heap2.numOfTrees;
+        numOfMarked += heap2.numOfMarked;
 
 //          if (maximalRank < heap2.maximalRank) {
 //              maximalRank = heap2.maximalRank;
@@ -214,19 +232,26 @@ public class FibonacciHeap
     */
     public int[] countersRep()
     {
-        if(this.isEmpty()){
+        if (this.isEmpty()) {
             return new int[0];
         }
-        int n = this.size();
-        int maxOrder = (int)Math.floor(Math.log(n+1)); //todo: need to find the real maximum
-    	int[] counters = new int[maxOrder];
-        HeapNode current = this.getFirst();
-        counters[current.getRank()] += 1;
-        while(current.getNext() != this.getFirst()){
+        int[] counters = new int[getMaxRank() + 1];
+        HeapNode current = first;
+        for (int i = 0; i < numOfTrees; i++) {
             current = current.getNext();
             counters[current.getRank()] += 1;
         }
         return counters;
+    }
+
+    private int getMaxRank() {
+        int maxRank = 0;
+        HeapNode current = first;
+        for (int i = 0; i < numOfTrees; i++) {
+            maxRank = Math.max(current.getRank(), maxRank);
+            current = current.getNext();
+        }
+        return maxRank;
     }
 
    /**
@@ -236,9 +261,9 @@ public class FibonacciHeap
 	* It is assumed that x indeed belongs to the heap.
     *
     */
-    public void delete(HeapNode x)
+    public void delete(HeapNode x)  //todo: how to handle delete when there is already Integer.MIN_VALUE?
     {
-    	decreaseKey(x, x.getKey() - Integer.MIN_VALUE);
+        decreaseKey(x, x.getKey() - Integer.MIN_VALUE);
         deleteMin();
     }
 
@@ -251,46 +276,60 @@ public class FibonacciHeap
     public void decreaseKey(HeapNode x, int delta)
     {
         x.setKey(x.getKey() - delta);
-        if (x.getParent() == null) {return;}
-        if (x.getKey() > x.getParent().getKey()) {return;}
+        if (x.getKey() < min.getKey()) {
+            min = x;
+        }
+        if (x.getParent() == null) {
+            return;
+        }
+        if (x.getKey() > x.getParent().getKey()) {
+            return;
+        }
 
         cut(x);
     }
 
     public void cut(HeapNode x) {
-        numOfCuts++;
-        HeapNode parent = x.getParent();
-        // remove x from its parents children
-        if (parent.getRank() == 1) {
-            parent.setChild(null);
-            parent.setRank(0);
-        } else {
-            if (parent.getChild() == x) {
-                parent.setChild(x.next());
-            } //todo: is this the expected behaviour? check in forum
+        HeapNode parent;
+        do { // process x, then move to its parent
+            numOfCuts++;
+            parent = x.getParent();
+            // remove x from its parents children
+            if (parent.getRank() == 1) {
+                parent.setChild(null);
+                parent.setRank(0);
+            } else {
+                if (parent.getChild() == x) {
+                    parent.setChild(x.getNext());
+                } //todo: is this the expected behaviour? check in forum
 
-            x.prev().setNext(x.next());
-            x.next().setPrev(x.prev());
+                x.getPrev().setNext(x.getNext());
+                x.getNext().setPrev(x.getPrev());
 
-            parent.setRank(parent.getRank() - 1);
-        }
-        // insert x to tree list
-        x.setParent(null);
-        x.unmarkNode();
-        x.setNext(first.next());
-        x.setPrev(first.prev());
-        first.prev().setNext(x);
-        first.next().setPrev(x);
-        first = x;
-        if (x.getKey() < min.getKey()) {
-            min = x;
-        }
+                parent.setRank(parent.getRank() - 1);
+            }
+            // insert x to tree list
+            x.setParent(null);
+            if (x.getMarked()) {
+                x.unmarkNode();
+                numOfMarked--;
+            }
+            x.setPrev(getLast());
+            getLast().setNext(x);
+            x.setNext(first);
+            first.setPrev(x);
+            first = x;
+            if (x.getKey() < min.getKey()) {
+                min = x;
+            }
+            numOfTrees++;
 
-        // cascade
-        if (parent.isMarked()) {
-            cut(parent);
-        } else {
-            parent.markNode();
+            x = parent;
+        } while (x.getMarked()); // continue as long as the parent is marked
+
+        if (!(x.getParent() == null)) { // if current node is not a root, set it to be marked
+            x.markNode();
+            numOfMarked++;
         }
     }
 
@@ -301,7 +340,7 @@ public class FibonacciHeap
     */
     public int nonMarked()
     {
-        return this.size-this.markedNodes;
+        return this.size-this.numOfMarked;
     }
 
    /**
@@ -353,24 +392,30 @@ public class FibonacciHeap
     */
     public static int[] kMin(FibonacciHeap H, int k)
     {
+        if (H.isEmpty() | (k == 0)) {
+            return new int[0];
+        }
         int[] minValues = new int[k];
         HeapNode curr = H.findMin();
         FibonacciHeap helperHeap = new FibonacciHeap();
         HeapNode cloneCurr = helperHeap.insert(curr.getKey());
         cloneCurr.setPointer(curr);
         for (int i=0 ; i<k; i++){
-            HeapNode child = curr.getChild();
-            HeapNode cloneChild = helperHeap.insert(child.getKey());
-            cloneChild.setPointer(child);
-            while(child.getNext()!=curr.getChild()){
-                child = child.getNext();
-                cloneChild = helperHeap.insert(child.getKey());
-                cloneChild.setPointer(child);
-            }
             HeapNode minimum = helperHeap.findMin().getPointer();
             minValues[i] = minimum.getKey();
             helperHeap.deleteMin();
             curr = minimum;
+
+            HeapNode child = curr.getChild();
+            if (child != null) {
+                HeapNode cloneChild = helperHeap.insert(child.getKey());
+                cloneChild.setPointer(child);
+                while (child.getNext() != curr.getChild()) {
+                    child = child.getNext();
+                    cloneChild = helperHeap.insert(child.getKey());
+                    cloneChild.setPointer(child);
+                }
+            }
         }
         return minValues;
     }
@@ -478,23 +523,28 @@ public class FibonacciHeap
         * its leftmost child.
         */
        public static HeapNode link(HeapNode root1, HeapNode root2) {
-            if (root1.getKey() > root2.getKey()) {
-                return link(root2, root1);
-            }
+           if (root1.getKey() > root2.getKey()) {
+               return link(root2, root1);
+           }
            numOfLinks++;
 
-            HeapNode currFirst = root1.getChild();
-            HeapNode currLast = currFirst.prev();
-            currLast.setNext(root2);
-            root2.setPrev(currLast);
-            currFirst.setPrev(root2);
-            root2.setNext(currFirst);
-            root1.setChild(root2);
-            root2.setParent(root1);
-            root1.rank++;
+           if (root1.getRank() == 0) {
+               root2.setNext(root2);
+               root2.setPrev(root2);
+           } else {
+               HeapNode currFirst = root1.getChild();
+               HeapNode currLast = currFirst.getPrev();
+               currLast.setNext(root2);
+               root2.setPrev(currLast);
+               currFirst.setPrev(root2);
+               root2.setNext(currFirst);
 
+           }
+           root1.setChild(root2);
+           root2.setParent(root1);
+           root1.rank++;
 
-            return root1;
+           return root1;
        }
    }
 }
