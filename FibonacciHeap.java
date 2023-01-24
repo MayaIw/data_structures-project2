@@ -9,15 +9,21 @@ public class FibonacciHeap
     public int size; // Number of elements in the heap
     public HeapNode min;
     public HeapNode first;
-    private static int numOfLinks = 0; //should be increased for every link operation
+    private static int numOfLinks = 0; //Should be increased for every link operation
     private static int numOfCuts = 0; //Should be increased for every cut operation
     private int numOfTrees = 0;
     private int numOfMarked = 0; //Should be increased for every new marked node
 
+    /** public HeapNode getFirst()
+     * returns the leftmost tree, which was inserted last to the heap
+     */
     public HeapNode getFirst(){
         return this.first;
     }
 
+    /** public HeapNode getLast()
+     * returns the rightmost tree, which was inserted first to the heap
+     */
     public HeapNode getLast(){
         return this.first.getPrev();
     }
@@ -449,70 +455,121 @@ public class FibonacciHeap
             this.pointer = null;
     	}
 
-    	public int getKey() {
+       /** public int getKey()
+        * returns the key
+        */
+        public int getKey() {
     		return this.key;
     	}
 
+       /** public void setKey()
+        * sets the key
+        */
         public void setKey(int key) {
             this.key = key;
         }
 
+       /** public void setRank()
+        * sets the rank (number of children)
+        */
         public void setRank(int rank){
             this.rank = rank;
         }
 
+       /** public int getRank()
+        * returns the rank (number of children)
+        */
         public int getRank(){
             return this.rank;
         }
 
+       /** public void setChild()
+        * sets the leftmost child
+        */
         public void setChild(HeapNode child){
             this.child = child;
         }
 
+       /** public HeapNode getChild()
+        * returns the leftmost child, null if the node's rank is 0
+        */
         public HeapNode getChild(){
             return this.child;
         }
 
+       /** public void setNext()
+        * sets the right neighbor, or the leftmost node (in case the current node is the rightmost node) in the current level
+        */
         public void setNext(HeapNode next){
             this.next = next;
         }
 
+       /** public HeapNode getNext()
+        * returns the right neighbor, or the leftmost node (in case the current node is the rightmost node) in the current level
+        */
         public HeapNode getNext(){
             return this.next;
         }
 
+       /** public void setPrev()
+        * sets the left neighbor, or the rightmost node (in case the current node is the leftmost node) in the current level
+        */
         public void setPrev(HeapNode prev){
             this.prev = prev;
         }
 
+       /** public HeapNode getPrev()
+        * returns the left neighbor, or the rightmost node (in case the current node is the leftmost node) in the current level
+        */
         public HeapNode getPrev(){
             return this.prev;
         }
 
+       /** public void unmarkNode()
+        * marks node
+        */
         public void markNode(){
             this.mark = true;
         }
 
+       /** public void unmarkNode()
+        * unmarks node
+        */
         public void unmarkNode(){
             this.mark = false;
         }
 
+       /** public boolean getMarked()
+        * returns true iff this node is marked
+        */
         public boolean getMarked(){
             return this.mark;
         }
 
+       /** public HeapNode setParent()
+        * sets the parent
+        */
         public void setParent(HeapNode parent){
             this.parent = parent;
         }
 
-       public HeapNode getParent() {
+       /** public HeapNode getParent()
+        * returns the parent, null if there is no parent
+        */
+        public HeapNode getParent() {
            return this.parent;
        }
 
+       /** public HeapNode setPointer()
+        * sets the pointer (to another node)
+        */
        public void setPointer(HeapNode pointer){
             this.pointer = pointer;
        }
 
+       /** public HeapNode getPointer()
+        * returns the pointer (to another node), null if no pointer was attached
+        */
        public HeapNode getPointer(){
             return this.pointer;
        }
