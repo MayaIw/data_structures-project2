@@ -7,22 +7,28 @@ import java.lang.Math;
 public class FibonacciHeap
 {
     public int size; // Number of elements in the heap
-    public HeapNode min;
-    public HeapNode first;
+    public HeapNode min; // The node with the smallest key
+    public HeapNode first; // The first root
     private static int numOfLinks = 0; //Should be increased for every link operation
     private static int numOfCuts = 0; //Should be increased for every cut operation
-    private int numOfTrees = 0;
-    private int numOfMarked = 0; //Should be increased for every new marked node
+    private int numOfTrees = 0; // Counts the number of trees in the heap
+    private int numOfMarked = 0; // Counts the number of marked nodes in the heap
 
     /** public HeapNode getFirst()
-     * returns the leftmost tree, which was inserted last to the heap
+     *
+     * Returns the leftmost tree, which was inserted last to the heap
+     * Complexity: O(1)
+     *
      */
     public HeapNode getFirst(){
         return this.first;
     }
 
     /** public HeapNode getLast()
-     * returns the rightmost tree, which was inserted first to the heap
+     *
+     * Returns the rightmost tree, which was inserted first to the heap
+     * Complexity: O(1)
+     *
      */
     public HeapNode getLast(){
         return this.first.getPrev();
@@ -32,6 +38,7 @@ public class FibonacciHeap
     * public boolean isEmpty()
     *
     * Returns true if and only if the heap is empty.
+    * Complexity: O(1)
     *
     */
     public boolean isEmpty()
@@ -44,6 +51,7 @@ public class FibonacciHeap
     *
     * Creates a node (of type HeapNode) which contains the given key, and inserts it into the heap.
     * The added key is assumed not to already belong to the heap.
+    * Complexity: O(1)
     *
     * Returns the newly created node.
     */
@@ -74,6 +82,7 @@ public class FibonacciHeap
     * public void deleteMin()
     *
     * Deletes the node containing the minimum key.
+    * Complexity: O(n)
     *
     */
     public void deleteMin()
@@ -111,11 +120,12 @@ public class FibonacciHeap
      * Go over all trees and preform successive linking.
      * Update numOfTrees, min, numOfMarked (unmark roots), numOfLinks, nullify parents of roots.
      *
-     * Assume heap is not empty.
+     * Assumes that the heap is not empty.
+     * Complexity: O(n)
+     *
      */
     private void consolidate() {
-        // We create an array of buckets which will containg all possible degrees
-        // todo: if ArrayList is allowed, switch to dynamic array
+        // We create an array of buckets which will contain all possible degrees
         HeapNode[] buckets = new HeapNode[(int) (2.5 * Math.log(size + 1) + 1)];
 
         // successive linking:
@@ -123,10 +133,10 @@ public class FibonacciHeap
         // also fix number of trees, minimum, and root markings in this process
         HeapNode curr = first;
         HeapNode nextNode;
-        int totalNumofTrees = numOfTrees;
+        int totalNumOfTrees = numOfTrees;
         int newMin = Integer.MAX_VALUE;
 
-        for (int i = 0; i < totalNumofTrees; i++) {
+        for (int i = 0; i < totalNumOfTrees; i++) {
             nextNode = curr.getNext(); // we keep it now because we change curr in the loop
             if (curr.getMarked()) { // we were asked to unmark all the roots including those created before consolidate
                 curr.unmarkNode();
@@ -174,6 +184,7 @@ public class FibonacciHeap
     * public HeapNode findMin()
     *
     * Returns the node of the heap whose key is minimal, or null if the heap is empty.
+    * Complexity: O(1)
     *
     */
     public HeapNode findMin()
@@ -181,13 +192,14 @@ public class FibonacciHeap
         if (this.isEmpty()) {
             return null;
         }
-        return this.min;
+        return min;
     }
 
    /**
     * public void meld (FibonacciHeap heap2)
     *
     * Melds heap2 with the current heap.
+    * Complexity: O(1)
     *
     */
     public void meld (FibonacciHeap heap2)
@@ -212,16 +224,13 @@ public class FibonacciHeap
         size += heap2.size();
         numOfTrees += heap2.numOfTrees;
         numOfMarked += heap2.numOfMarked;
-
-//          if (maximalRank < heap2.maximalRank) {
-//              maximalRank = heap2.maximalRank;
-//          }
     }
 
    /**
     * public int size()
     *
     * Returns the number of elements in the heap.
+    * Complexity: O(1)
     *
     */
     public int size()
@@ -230,12 +239,13 @@ public class FibonacciHeap
     }
 
     /**
-    * public int[] countersRep()
-    *
-    * Return an array of counters. The i-th entry contains the number of trees of order i in the heap.
-    * (Note: The size of of the array depends on the maximum order of a tree.)
-    *
-    */
+     * public int[] countersRep()
+     *
+     * Return an array of counters. The i-th entry contains the number of trees of order i in the heap.
+     * (Note: The size of of the array depends on the maximum order of a tree.)
+     * Complexity: O(n)
+     *
+     */
     public int[] countersRep()
     {
         if (this.isEmpty()) {
@@ -244,12 +254,19 @@ public class FibonacciHeap
         int[] counters = new int[getMaxRank() + 1];
         HeapNode current = first;
         for (int i = 0; i < numOfTrees; i++) {
-            current = current.getNext();
             counters[current.getRank()] += 1;
+            current = current.getNext();
         }
         return counters;
     }
 
+    /**
+     * private int getMaxRank()
+     *
+     * Returns the maximal rank of a tree in the heap.
+     * Complexity: O(n)
+     *
+     */
     private int getMaxRank() {
         int maxRank = 0;
         HeapNode current = first;
@@ -265,9 +282,10 @@ public class FibonacciHeap
     *
     * Deletes the node x from the heap.
 	* It is assumed that x indeed belongs to the heap.
+    * Complexity: O(n)
     *
     */
-    public void delete(HeapNode x)  //todo: how to handle delete when there is already Integer.MIN_VALUE?
+    public void delete(HeapNode x)
     {
         decreaseKey(x, x.getKey() - Integer.MIN_VALUE);
         deleteMin();
@@ -278,6 +296,8 @@ public class FibonacciHeap
     *
     * Decreases the key of the node x by a non-negative value delta. The structure of the heap should be updated
     * to reflect this change (for example, the cascading cuts procedure should be applied if needed).
+    * Complexity: O(n)
+    *
     */
     public void decreaseKey(HeapNode x, int delta)
     {
@@ -295,6 +315,14 @@ public class FibonacciHeap
         cut(x);
     }
 
+
+    /**
+     * public void cut(HeapNode x)
+     *
+     * Cut a node x from its parent. Continue cascading cuts if needed. Assumes x is marked.
+     * Complexity: O(n)
+     *
+     */
     public void cut(HeapNode x) {
         HeapNode parent;
         do { // process x, then move to its parent
@@ -307,7 +335,7 @@ public class FibonacciHeap
             } else {
                 if (parent.getChild() == x) {
                     parent.setChild(x.getNext());
-                } //todo: is this the expected behaviour? check in forum
+                }
 
                 x.getPrev().setNext(x.getNext());
                 x.getNext().setPrev(x.getPrev());
@@ -325,9 +353,6 @@ public class FibonacciHeap
             x.setNext(first);
             first.setPrev(x);
             first = x;
-            if (x.getKey() < min.getKey()) {
-                min = x;
-            }
             numOfTrees++;
 
             x = parent;
@@ -343,6 +368,7 @@ public class FibonacciHeap
     * public int nonMarked()
     *
     * This function returns the current number of non-marked items in the heap
+    * Complexity: O(1)
     */
     public int nonMarked()
     {
@@ -357,6 +383,9 @@ public class FibonacciHeap
     *
     * In words: The potential equals to the number of trees in the heap
     * plus twice the number of marked nodes in the heap.
+    *
+    * Complexity: O(1)
+    *
     */
     public int potential()
     {
@@ -370,6 +399,7 @@ public class FibonacciHeap
     * run-time of the program. A link operation is the operation which gets as input two
     * trees of the same rank, and generates a tree of rank bigger by one, by hanging the
     * tree which has larger value in its root under the other tree.
+    * Complexity: O(1)
     */
     public static int totalLinks()
     {
@@ -382,6 +412,7 @@ public class FibonacciHeap
     * This static function returns the total number of cut operations made during the
     * run-time of the program. A cut operation is the operation which disconnects a subtree
     * from its parent (during decreaseKey/delete methods).
+    * Complexity: O(1)
     */
     public static int totalCuts()
     {
@@ -395,10 +426,11 @@ public class FibonacciHeap
     * The function should run in O(k*deg(H)). (deg(H) is the degree of the only tree in H.)
     *
     * ###CRITICAL### : you are NOT allowed to change H.
+    * Complexity: O(k*deg(H))
     */
     public static int[] kMin(FibonacciHeap H, int k)
     {
-        if (H.isEmpty() | (k == 0)) {
+        if (H.isEmpty() || (k == 0)) {
             return new int[0];
         }
         int[] minValues = new int[k];
@@ -438,9 +470,9 @@ public class FibonacciHeap
     	public int key;
         public int rank;
         public boolean mark;
-        public HeapNode child;
-        public HeapNode next;
-        public HeapNode prev;
+        public HeapNode child;  // represents the leftmost child among the heapNode's children
+        public HeapNode next; // represents the next node, i.e. the right neighbor of the current node, or the leftmost node amongst its siblings if it's the rightmost one
+        public HeapNode prev; // represents the previous node, i.e. the left neighbor of the current node, or the rightmost node amongst its siblings if it's the leftmost one
         public HeapNode parent;
         public HeapNode pointer;
 
@@ -457,6 +489,8 @@ public class FibonacciHeap
 
        /** public int getKey()
         * returns the key
+        *
+        * Complexity: O(1))
         */
         public int getKey() {
     		return this.key;
@@ -464,6 +498,7 @@ public class FibonacciHeap
 
        /** public void setKey()
         * sets the key
+        * Complexity: O(1))
         */
         public void setKey(int key) {
             this.key = key;
@@ -471,6 +506,7 @@ public class FibonacciHeap
 
        /** public void setRank()
         * sets the rank (number of children)
+        * Complexity: O(1))
         */
         public void setRank(int rank){
             this.rank = rank;
@@ -478,6 +514,7 @@ public class FibonacciHeap
 
        /** public int getRank()
         * returns the rank (number of children)
+        * Complexity: O(1))
         */
         public int getRank(){
             return this.rank;
@@ -485,41 +522,47 @@ public class FibonacciHeap
 
        /** public void setChild()
         * sets the leftmost child
+        * Complexity: O(1))
         */
         public void setChild(HeapNode child){
             this.child = child;
         }
 
        /** public HeapNode getChild()
-        * returns the leftmost child, null if the node's rank is 0
+        * returns the child attribute of the node (i.e. leftmost child amongst its children), null if the node's rank is 0
+        * Complexity: O(1))
         */
         public HeapNode getChild(){
             return this.child;
         }
 
        /** public void setNext()
-        * sets the right neighbor, or the leftmost node (in case the current node is the rightmost node) in the current level
+        * sets the next attribute
+        * Complexity: O(1))
         */
         public void setNext(HeapNode next){
             this.next = next;
         }
 
        /** public HeapNode getNext()
-        * returns the right neighbor, or the leftmost node (in case the current node is the rightmost node) in the current level
+        * returns the next attribute
+        * Complexity: O(1))
         */
         public HeapNode getNext(){
             return this.next;
         }
 
        /** public void setPrev()
-        * sets the left neighbor, or the rightmost node (in case the current node is the leftmost node) in the current level
+        * sets the prev attribute
+        * Complexity: O(1))
         */
         public void setPrev(HeapNode prev){
             this.prev = prev;
         }
 
        /** public HeapNode getPrev()
-        * returns the left neighbor, or the rightmost node (in case the current node is the leftmost node) in the current level
+        * returns the prev attribute
+        * Complexity: O(1))
         */
         public HeapNode getPrev(){
             return this.prev;
@@ -527,6 +570,7 @@ public class FibonacciHeap
 
        /** public void unmarkNode()
         * marks node
+        * Complexity: O(1))
         */
         public void markNode(){
             this.mark = true;
@@ -534,6 +578,7 @@ public class FibonacciHeap
 
        /** public void unmarkNode()
         * unmarks node
+        * Complexity: O(1))
         */
         public void unmarkNode(){
             this.mark = false;
@@ -541,6 +586,7 @@ public class FibonacciHeap
 
        /** public boolean getMarked()
         * returns true iff this node is marked
+        * Complexity: O(1))
         */
         public boolean getMarked(){
             return this.mark;
@@ -548,6 +594,7 @@ public class FibonacciHeap
 
        /** public HeapNode setParent()
         * sets the parent
+        * Complexity: O(1))
         */
         public void setParent(HeapNode parent){
             this.parent = parent;
@@ -555,6 +602,7 @@ public class FibonacciHeap
 
        /** public HeapNode getParent()
         * returns the parent, null if there is no parent
+        * Complexity: O(1))
         */
         public HeapNode getParent() {
            return this.parent;
@@ -562,6 +610,7 @@ public class FibonacciHeap
 
        /** public HeapNode setPointer()
         * sets the pointer (to another node)
+        * Complexity: O(1))
         */
        public void setPointer(HeapNode pointer){
             this.pointer = pointer;
@@ -569,6 +618,7 @@ public class FibonacciHeap
 
        /** public HeapNode getPointer()
         * returns the pointer (to another node), null if no pointer was attached
+        * Complexity: O(1))
         */
        public HeapNode getPointer(){
             return this.pointer;
@@ -578,6 +628,7 @@ public class FibonacciHeap
         *
         * Link two roots. The root with the smaller key is returned, after the other root has been set to be
         * its leftmost child.
+        * Complexity: O(1))
         */
        public static HeapNode link(HeapNode root1, HeapNode root2) {
            if (root1.getKey() > root2.getKey()) {
