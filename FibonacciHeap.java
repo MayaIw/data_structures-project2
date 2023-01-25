@@ -3,6 +3,8 @@ import java.lang.Math;
  * FibonacciHeap
  *
  * An implementation of a Fibonacci Heap over integers.
+ *
+ * Implementation by: Sharon Sorin (sharonsorin, 322756156) and Maya Iwanir (mayaiwanir, 322885203)
  */
 public class FibonacciHeap
 {
